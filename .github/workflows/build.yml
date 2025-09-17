@@ -1,43 +1,39 @@
-name: Build ZMK 6x15 firmware
+name: Build ZMK Firmware
 
 on:
   push:
-    branches: [main]
+    paths:
+      - ".github/workflows/build.yml"
+      - "app/**"
   pull_request:
-    branches: [main]
+    paths:
+      - ".github/workflows/build.yml"
+      - "app/**"
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    container:
+      image: docker.io/zmkfirmware/zmk-build-arm:3.5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive  # ถ้า ZMK เป็น submodule
-
-      - name: Install Python and West
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install west
 
       - name: Initialize ZMK workspace
         run: |
-          cd zmk
+          cd app
           west init -l .
           west update
           west zephyr-export
 
       - name: Build firmware
         run: |
-          cd zmk/app
-          west build -b nice_nano_v2 \
-            -d ../../build/my_6x15 -- \
-            -DSHIELD=my_6x15 \
-            -DZMK_CONFIG=${GITHUB_WORKSPACE}/config
+          cd app
+          west build -b nice_nano_v2 -- -DSHIELD=my_6x15
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: my_6x15_firmware
-          path: build/my_6x15/zephyr/zmk.uf2
+          path: app/build/zephyr/zmk.uf2
