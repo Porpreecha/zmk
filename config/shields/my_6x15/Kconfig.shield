@@ -1,2 +1,0 @@
-config SHIELD_MY_6X15
-    bool "My 6x15 Keyboard"

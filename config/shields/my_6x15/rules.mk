@@ -1,1 +1,0 @@
-SHIELD_NAME := my_6x15

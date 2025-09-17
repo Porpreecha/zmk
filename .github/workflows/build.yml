@@ -4,36 +4,34 @@ on:
   push:
     paths:
       - ".github/workflows/build.yml"
-      - "app/**"
+      - "zmk/**"
   pull_request:
     paths:
       - ".github/workflows/build.yml"
-      - "app/**"
-  workflow_dispatch:
+      - "zmk/**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
       image: docker.io/zmkfirmware/zmk-build-arm:3.5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Initialize ZMK workspace
         run: |
-          cd app
-          west init -l .
+          west init -l zmk
           west update
           west zephyr-export
 
       - name: Build firmware
         run: |
-          cd app
-          west build -b nice_nano_v2 -- -DSHIELD=my_6x15
+          west build -s zmk -b nice_nano_v2 -- -DSHIELD="my_6x15"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: my_6x15_firmware
-          path: app/build/zephyr/zmk.uf2
+          path: zmk/build/zephyr/zmk.uf2
