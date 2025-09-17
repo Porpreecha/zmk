@@ -3,36 +3,53 @@ name: Build ZMK Firmware
 on:
   push:
     paths:
-      - "app/**"
+      - "zmk/**"
       - ".github/workflows/build.yml"
   pull_request:
     paths:
-      - "app/**"
+      - "zmk/**"
       - ".github/workflows/build.yml"
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
       image: docker.io/zmkfirmware/zmk-build-arm:3.5
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
 
-      - name: Initialize ZMK workspace
+    steps:
+      # Checkout repository
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Cache Zephyr and west modules
+      - name: Cache west modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            zmk/modules/
+            zmk/tools/
+            zmk/zephyr/
+            zmk/bootloader/
+          key: ${{ runner.os }}-zmk-cache-${{ hashFiles('zmk/west.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-zmk-cache-
+
+      # Initialize west workspace
+      - name: Initialize west workspace
         run: |
           cd zmk
-          west init -l ../app
-          west update
+          west init -l .
+          west update --fetch-opt=--filter=tree:0
           west zephyr-export
 
+      # Build firmware
       - name: Build firmware
         run: |
           cd zmk
-          west build -s ../app -b nice_nano_v2 -- -DSHIELD="my_6x15"
+          west build -s app -b nice_nano_v2 -- -DSHIELD="my_6x15"
 
+      # Upload artifacts
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
