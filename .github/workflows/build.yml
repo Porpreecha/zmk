@@ -1,4 +1,4 @@
-name: Build ZMK 6x15 firmware
+name: Build ZMK 6x15 firmware"
 
 on:
   push:
