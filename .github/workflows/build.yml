@@ -11,16 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository ทั้งหมด
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # ถ้า ZMK เป็น submodule
+          submodules: recursive
 
+      # 2. ติดตั้ง Python และ west
       - name: Install Python and West
         run: |
           python3 -m pip install --upgrade pip
           pip install west
 
+      # 3. Initialize ZMK workspace
       - name: Initialize ZMK workspace
         run: |
           cd zmk
@@ -28,6 +31,7 @@ jobs:
           west update
           west zephyr-export
 
+      # 4. Build firmware
       - name: Build firmware
         run: |
           cd zmk/app
@@ -36,6 +40,7 @@ jobs:
             -DSHIELD=my_6x15 \
             -DZMK_CONFIG=${GITHUB_WORKSPACE}/config
 
+      # 5. Upload firmware artifact
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
